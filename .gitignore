@@ -2,3 +2,4 @@
 !spec/*.html
 *.png
 !spec/*.png
+/CrystalLanguageToJs/bin/

@@ -189,16 +189,16 @@ namespace CrystalLanguageToJs
 											   "<>", "Exit",   ".Strings[", "#13#10",
 											   " not ", " or ", " and ", "if ", " then",
 											   " while ", " do ", "TDateTime",
-											   ";", "overload", "\\", "\"", "''", " ( ", " (\n", " ) ", " );", " )\n", "?", "WhilePrintingRecords;",
-                                               "Global", "Local", "Shared"
+											   ";", "overload", "\\", "''", " ( ", " (\n", " ) ", " );", " )\n", "?", "WhilePrintingRecords;",
+                                               "Global", "Local", "Shared", "@"
                                            };
 			string[] CSharp = new String[] {"", "", " true", " false", " continue", " break", " if",
 											   "else", "}",     "}",     "then", "string[]",    "string[]", "{\n", 
 											   "!=", "return", "[", "'\\n'",
 											   " !",    " || ", " && "   , " if (", ")",
 											   " while (", ") " , "DateTime",
-											   ";\n", " ", "\\\\", "\\\"","\'", " { ", " {\n", " } ", " }", " }\n", "", "",
-                                               "var", "let", "var"
+											   ";\n", " ", "\\\\","\'", " { ", " {\n", " } ", " }", " }\n", "", "",
+                                               "var", "let", "var", ""
                                             };
             string[] delphi_lower = new string[] { "stringvar", "numbervar" };
             string[] CSharp_lower = new string[] { "", "" };
@@ -225,10 +225,11 @@ namespace CrystalLanguageToJs
 		{
 			int i;
 			int pos;
-			int nbrLines = lines.Length;
+            int pos2;
+            int nbrLines = lines.Length;
 			int lineNbr = 0;
-			int leftParen = 0;
-			int rightParen = 0;
+		//	int leftParen = 0;
+		//	int rightParen = 0;
 			string aLine = "";
 			string[] newCode = new string[nbrLines];
 			string textToExamine;
@@ -236,85 +237,117 @@ namespace CrystalLanguageToJs
 			bool inComment = false;
 			bool inMethod = false;
 
-			for (i = 0; i < nbrLines; i++)
-			{
-				textToExamine = lines[i];
+            for (i = 0; i < nbrLines; i++)
+            {
+                textToExamine = lines[i];
 
                 if (inComment)
-				{
-					pos = textToExamine.IndexOf("*/");
-					if (pos > -1)
-					{
-						inComment = false;
-						textToExamine.Replace("*/", "*/\n");
-						aLine = aLine + " " + textToExamine.Substring(0, pos + 2);
-						newCode.SetValue(aLine, lineNbr++);
-						textToExamine = textToExamine.Substring(pos + 2, textToExamine.Length - pos - 2);
-					}
-				}
+                {
+                    pos = textToExamine.IndexOf("*/");
+                    if (pos > -1)
+                    {
+                        inComment = false;
+                        textToExamine.Replace("*/", "*/\n");
+                        aLine = aLine + " " + textToExamine.Substring(0, pos + 2);
+                        newCode.SetValue(aLine, lineNbr++);
+                        textToExamine = textToExamine.Substring(pos + 2, textToExamine.Length - pos - 2);
+                    }
+                }
 
-				if (inVars)
-				{
-					if ((textToExamine.TrimStart().StartsWith("begin ")) | (textToExamine.Trim() == "begin") | 
-						(textToExamine.Trim() == "{") | (textToExamine.TrimStart().StartsWith("{ ")) |
-						(textToExamine.IndexOf(")") > -1))
-					{
-						inVars = false;
-						newCode.SetValue(aLine, lineNbr++);
-						aLine = "";
-					}
-					else
-					{
-						aLine = aLine + " " + textToExamine.TrimEnd();
-					}
-					continue;
-				}
-
-				if ((aLine == "") && ((textToExamine.TrimStart().StartsWith("var ")) | (textToExamine.Trim() == "var")))
-				{
-					inVars = true;
-					aLine = textToExamine;
-					continue;
-				}
-
-				if (StandsAlone(textToExamine.Trim()))
-				{
-					if (aLine.Trim().Length > 0)
-					{
-						newCode.SetValue(aLine, lineNbr++);
-					}
-                    newCode.SetValue(textToExamine, lineNbr++);
-					aLine = "";
-                   
+                if (inVars)
+                {
+                    if ((textToExamine.TrimStart().StartsWith("begin ")) | (textToExamine.Trim() == "begin") |
+                        (textToExamine.Trim() == "{") | (textToExamine.TrimStart().StartsWith("{ ")) |
+                        (textToExamine.IndexOf(")") > -1))
+                    {
+                        inVars = false;
+                        newCode.SetValue(aLine, lineNbr++);
+                        aLine = "";
+                    }
+                    else
+                    {
+                        aLine = aLine + " " + textToExamine.TrimEnd();
+                    }
                     continue;
-				}
+                }
 
-				//  See if we're in a method prototype
-				if ( textToExamine.TrimStart().ToLower().StartsWith("procedure ") | textToExamine.TrimStart().ToLower().StartsWith("function "))
-				{
-					inMethod = true;
-					leftParen = 0;
-					rightParen = 0;
-				}
-				//  If we are in a method prototype, make sure that the whole prototype gets included (do not get confused by "var" params)
-				if (inMethod)
-				{
-					leftParen = leftParen + CountOccurences(textToExamine, new char[] {'('});
-					rightParen = rightParen + CountOccurences(textToExamine, new char[] {')'});
-					if (leftParen == rightParen)
-					{
-						inMethod = false;
-					}
-				}
-                System.Diagnostics.Debug.WriteLine(textToExamine.TrimEnd());				
-                aLine = aLine + " " + textToExamine.TrimEnd();
-				if ( aLine.EndsWith(";") && (!inMethod))
-				{
-					aLine = DoMoreComplexChanges(aLine);
-					newCode.SetValue(aLine, lineNbr++);
-					aLine = "";
-				}
+                //if ((aLine == "") && ((textToExamine.TrimStart().StartsWith("var ")) | (textToExamine.Trim() == "var")))
+                //{
+                //	inVars = true;
+                //	aLine = textToExamine;
+                //	continue;
+                //}
 
+                if (StandsAlone(textToExamine.Trim()))
+                {
+                    if (aLine.Trim().Length > 0)
+                    {
+                        newCode.SetValue(aLine, lineNbr++);
+                    }
+                    newCode.SetValue(textToExamine, lineNbr++);
+                    aLine = "";
+
+                    continue;
+                }
+
+                //  See if we're in a method prototype
+                //if ( textToExamine.TrimStart().ToLower().StartsWith("procedure ") | textToExamine.TrimStart().ToLower().StartsWith("function "))
+                //{
+                //	inMethod = true;
+                //	leftParen = 0;
+                //	rightParen = 0;
+                //}
+                ////  If we are in a method prototype, make sure that the whole prototype gets included (do not get confused by "var" params)
+                //if (inMethod)
+                //{
+                //	leftParen = leftParen + CountOccurences(textToExamine, new char[] {'('});
+                //	rightParen = rightParen + CountOccurences(textToExamine, new char[] {')'});
+                //	if (leftParen == rightParen)
+                //	{
+                //		inMethod = false;
+                //	}
+                //}
+                // System.Diagnostics.Debug.WriteLine(textToExamine.TrimEnd());		
+                pos = aLine.IndexOf("//");
+                if (pos > -1 && Regex.Replace(aLine, @"\s+", "").StartsWith("//"))
+                {
+                    newCode.SetValue(aLine, lineNbr++);
+                    newCode.SetValue(textToExamine, lineNbr++);
+                    aLine = "";
+                }
+                else
+                {
+                    if (pos > -1)
+                    {
+                        aLine = aLine.Substring(0, pos);
+                        aLine = aLine.TrimEnd();
+                    }
+                    pos2 = textToExamine.IndexOf("//");
+                    if (pos2 > -1 && !Regex.Replace(textToExamine, @"\s+", "").StartsWith("//"))
+                    {
+                        textToExamine = textToExamine.Substring(0, pos2);
+                        textToExamine = textToExamine.TrimEnd();
+                    }
+
+
+                    if (aLine != "" && aLine != " ")
+                    {
+                        textToExamine = Regex.Replace(textToExamine, @"\s+", " ");
+                    }
+                    
+                    if (!textToExamine.StartsWith(" "))
+                    {
+                        aLine = aLine + " ";
+                    }
+                    aLine = aLine + textToExamine.TrimEnd();
+                    if (aLine.EndsWith(";") && (!inMethod))
+                    {
+                        aLine = DoMoreComplexChanges(aLine);
+                        newCode.SetValue(aLine, lineNbr++);
+                        aLine = "";
+                    }
+                }
+               
 				pos = textToExamine.IndexOf("/*");
 				if (pos > -1)
 				{
@@ -334,7 +367,7 @@ namespace CrystalLanguageToJs
 
 		private bool StandsAlone(string aPhrase)
 		{
-			if ((aPhrase.Trim() == "{") | (aPhrase.Trim() == "}") | (aPhrase.Trim() == "else"))
+			if ((aPhrase.Trim() == "{") | (aPhrase.Trim() == "}"))
 			{
 				return true;
 			}
@@ -998,7 +1031,7 @@ namespace CrystalLanguageToJs
 			allText = DeleteExtraSpaces(allText);
             tb1.Text = ChangeNonBracketedSyntax(tb1.Text);
             tb1.Text = tb1.Text.Trim();          
-			//tb1.Lines = MakeLinesWhole(tb1.Lines);
+			tb1.Lines = MakeLinesWhole(tb1.Lines);
             tb1.Text = tb1.Text.Trim();
             
 
@@ -1017,7 +1050,7 @@ namespace CrystalLanguageToJs
 				aLine.Length = 0;
 				aLine.Append(tb1.Lines[i]);
 				trailingComment = "";
-				ExtractComments(ref aLine, ref trailingComment); 
+				//ExtractComments(ref aLine, ref trailingComment); 
 				label2.Text = aLine.ToString();
 
 	
@@ -1574,7 +1607,8 @@ namespace CrystalLanguageToJs
 				};
 
 				//  Convert FOR loops
-				x = aLine.ToString().TrimStart().ToLower();
+                pos2 = x.IndexOf("for ");
+                x = aLine.ToString().TrimStart().ToLower();
 				pos = x.IndexOf("for ");
 				if (pos > -1)
 				{
@@ -1643,6 +1677,15 @@ namespace CrystalLanguageToJs
 							x = x + " " + rightSide;
 						}
                         x = x.Replace("  ", " ");
+                        if  (pos2 > 0)
+                        {
+                            string forStartSpace = new String(' ', pos2-1);
+                            x = "\t" + forStartSpace + x;
+                        }
+                        else
+                        {
+                            x = "\t " + x;
+                        }
                         AddLine(ref aLine, x, trailingComment);
 					}
 				}
@@ -1653,7 +1696,7 @@ namespace CrystalLanguageToJs
 				pos = x.IndexOf(" = ");
 				if (pos > -1)
 				{
-					if (x.IndexOf("for") == -1)
+					if (x.IndexOf(" for ") == -1)
 					{
 						x = x.Replace(" = ", " == ");
 						AddLine(ref aLine, x, trailingComment);
