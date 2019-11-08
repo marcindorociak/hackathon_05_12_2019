@@ -1,0 +1,32 @@
+Microsoft Visual Studio Solution File, Format Version 7.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertDelphiToCSharp", "ConvertDelphiToCSharp.csproj", "{E31E825A-C936-4003-AE41-0ED46DF15FD0}"
+EndProject
+Global
+	GlobalSection(SourceCodeControl) = preSolution
+		SccNumberOfProjects = 2
+		SccProjectName0 = \u0022$/ConvertDelphiToCSharp\u0022,\u0020JIJAAAAA
+		SccLocalPath0 = .
+		SccProvider0 = MSSCCI:Microsoft\u0020Visual\u0020SourceSafe
+		CanCheckoutShared = false
+		SolutionUniqueID = {C293061E-04D7-4FA5-B0A8-688978B66AD5}
+		SccProjectUniqueName1 = ConvertDelphiToCSharp.csproj
+		SccLocalPath1 = .
+		CanCheckoutShared = false
+	EndGlobalSection
+	GlobalSection(SolutionConfiguration) = preSolution
+		ConfigName.0 = Debug
+		ConfigName.1 = Release
+	EndGlobalSection
+	GlobalSection(ProjectDependencies) = postSolution
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{E31E825A-C936-4003-AE41-0ED46DF15FD0}.Debug.ActiveCfg = Debug|.NET
+		{E31E825A-C936-4003-AE41-0ED46DF15FD0}.Debug.Build.0 = Debug|.NET
+		{E31E825A-C936-4003-AE41-0ED46DF15FD0}.Release.ActiveCfg = Release|.NET
+		{E31E825A-C936-4003-AE41-0ED46DF15FD0}.Release.Build.0 = Release|.NET
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

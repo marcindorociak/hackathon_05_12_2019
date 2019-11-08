@@ -1,0 +1,7 @@
+C:\svn\hackathon112019\Delphi2CSharp_Rel1.1\bin\Debug\ConvertDelphiToCSharp.exe
+C:\svn\hackathon112019\Delphi2CSharp_Rel1.1\bin\Debug\ConvertDelphiToCSharp.pdb
+C:\svn\hackathon112019\Delphi2CSharp_Rel1.1\obj\Debug\ConvertDelphiToCSharp.csprojAssemblyReference.cache
+C:\svn\hackathon112019\Delphi2CSharp_Rel1.1\obj\Debug\ConvertDelphiToCSharp.frmD2C.resources
+C:\svn\hackathon112019\Delphi2CSharp_Rel1.1\obj\Debug\ConvertDelphiToCSharp.csproj.GenerateResource.cache
+C:\svn\hackathon112019\Delphi2CSharp_Rel1.1\obj\Debug\ConvertDelphiToCSharp.exe
+C:\svn\hackathon112019\Delphi2CSharp_Rel1.1\obj\Debug\ConvertDelphiToCSharp.pdb
