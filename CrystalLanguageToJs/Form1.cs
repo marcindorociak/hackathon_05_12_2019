@@ -224,16 +224,21 @@ namespace CrystalLanguageToJs
 		private string[] MakeLinesWhole(string[] lines)
 		{
 			int i;
-			int pos;
+            int j;
+            int pos;
             int pos2;
             int nbrLines = lines.Length;
 			int lineNbr = 0;
-		//	int leftParen = 0;
-		//	int rightParen = 0;
-			string aLine = "";
+            int wholeTextLenght;
+            int subStringLength;
+            //	int leftParen = 0;
+            //	int rightParen = 0;
+            string aLine = "";
 			string[] newCode = new string[nbrLines];
 			string textToExamine;
-			bool inVars = false;
+            string subText;
+            string subTextConst;
+            bool inVars = false;
 			bool inComment = false;
 			bool inMethod = false;
 
@@ -307,7 +312,41 @@ namespace CrystalLanguageToJs
                 //		inMethod = false;
                 //	}
                 //}
-                // System.Diagnostics.Debug.WriteLine(textToExamine.TrimEnd());		
+                // System.Diagnostics.Debug.WriteLine(textToExamine.TrimEnd());	
+
+                // deal with REDIM
+                pos = textToExamine.ToLower().IndexOf("redim ");
+                if (pos > -1)
+                {
+                    while (pos > -1)
+                    {
+                        wholeTextLenght = textToExamine.Length;
+                        subText = textToExamine.ToString().Substring(pos, wholeTextLenght - pos);
+                        subText = Regex.Replace(subText, @"\s+", " ");
+                        subTextConst = textToExamine.Substring(0, pos);
+                        string[] subTextDivided = subText.Split(new char[] { ' ' });
+                        subStringLength = subTextDivided.Length;
+                        textToExamine = subTextConst + subTextDivided[1] + " := new Array(" + 
+                                        subTextDivided[2].TrimEnd(';').TrimStart('[').TrimEnd(']') +  ")";
+                        if (subStringLength <= 3)
+                        {               
+                            if (subTextDivided[2].IndexOf(";") > -1)
+                            {
+                                textToExamine = textToExamine + ";";
+                            }
+                        }
+                        else
+                        {
+                            for (j = 3; j < subStringLength; j++)
+                            {
+                                textToExamine = textToExamine + " " + subTextDivided[j];
+                            }
+                        }
+                        pos = textToExamine.ToLower().IndexOf("redim ");
+                    }
+                }
+
+
                 pos = aLine.IndexOf("//");
                 if (pos > -1 && Regex.Replace(aLine, @"\s+", "").StartsWith("//"))
                 {
@@ -1713,11 +1752,8 @@ namespace CrystalLanguageToJs
 					AddLine(ref aLine, x, trailingComment);
 				}
 
-
-
-				
-				//  add it to new code array
-				newCode[lineNbr++] = aLine.ToString();
+                //  add it to new code array
+                newCode[lineNbr++] = aLine.ToString();
 			}
 			
 			tb1.Lines = newCode;
