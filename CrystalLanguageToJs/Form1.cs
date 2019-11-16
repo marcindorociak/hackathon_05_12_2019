@@ -184,25 +184,30 @@ namespace CrystalLanguageToJs
 		
 		private string ChangeNonBracketedSyntax(string delphiCode)
 		{
-			string[] delphi = new string[] {"{",  "}", " True", " False", " Continue", " Break", " If",
-											   "Else", "end;", " end\n", "Then", "TStringList", "TStrings", "begin",
-											   "<>", "Exit",   ".Strings[", "#13#10",
-											   " not ", " or ", " and ", "if ", " then",
-											   " while ", " do ", "TDateTime",
-											   ";", "overload", "\\", "''", " ( ", " (\n", " ) ", " );", " )\n", "?", "WhilePrintingRecords;",
-                                               "Global", "Local", "Shared", "@"
+			string[] delphi = new string[] {"{",  "}", " True", " False", " Continue", " Break",
+											"Else", "end;", " end\n", "Then", "TStringList", "TStrings", "begin",
+											"<>", "Exit",   ".Strings[", "#13#10",
+											" not ", " or ", " and ", " then",
+											" while ", " do ", "TDateTime",
+											";", "overload", "\\", "''", " ( ", " (\n", "\t(",
+                                            " ) ", " );", "\t);", " )\n", "?", "@", "if ",  "If "
                                            };
-			string[] CSharp = new String[] {"", "", " true", " false", " continue", " break", " if",
-											   "else", "}",     "}",     "then", "string[]",    "string[]", "{\n", 
-											   "!=", "return", "[", "'\\n'",
-											   " !",    " || ", " && "   , " if (", ")",
-											   " while (", ") " , "DateTime",
-											   ";\n", " ", "\\\\","\'", " { ", " {\n", " } ", " }", " }\n", "", "",
-                                               "var", "let", "var", ""
+			string[] CSharp = new String[] {"", "", " true", " false", " continue", " break",
+											"else", "}",     "}",     "then", "string[]",    "string[]", "{\n", 
+											"!=", "return", "[", "'\\n'",
+											" !",    " || ", " && "   , ")",
+											" while (", ") " , "DateTime",
+											";\n", " ", "\\\\","\'", " { ", " {\n", "\t{",
+                                            " } ", " }", "\t}", " }\n", "", "", "if (", "if ("
                                             };
-            string[] delphi_lower = new string[] { "stringvar", "numbervar" };
-            string[] CSharp_lower = new string[] { "", "" };
-
+            string[] delphi_lower = new string[] { "WhilePrintingRecords;", "Global", "Local", "Shared", "split\\(", "join\\(",
+                                                   "numerictext\\(", "tonumber\\(", "split \\(", "join \\(", "numerictext \\(", "tonumber \\(",
+                                                   "replace\\(", "replace \\(", "select", "case", "default", "len \\(", "length \\(", "length\\("
+                                                 };
+            string[] CSharp_lower = new string[] { "", "var", "let", "var", "splitz(", "joinz(", 
+                                                   "!isNaN(", "Number(","splitz(", "joinz(","!isNaN(", "Number(",
+                                                   "replacez(", "replacez(", "switch (", "case", "default", "len(", "len(", "len("
+                                                 };
 
             string csharpCode;
 			int i;
@@ -225,19 +230,19 @@ namespace CrystalLanguageToJs
 		{
 			int i;
             int j;
+            int k;
             int pos;
             int pos2;
             int nbrLines = lines.Length;
 			int lineNbr = 0;
-            int wholeTextLenght;
             int subStringLength;
             //	int leftParen = 0;
             //	int rightParen = 0;
             string aLine = "";
-			string[] newCode = new string[nbrLines];
+            string subText = "";
+            string tabText = "";
+            string[] newCode = new string[nbrLines];
 			string textToExamine;
-            string subText;
-            string subTextConst;
             bool inVars = false;
 			bool inComment = false;
 			bool inMethod = false;
@@ -314,38 +319,53 @@ namespace CrystalLanguageToJs
                 //}
                 // System.Diagnostics.Debug.WriteLine(textToExamine.TrimEnd());	
 
-                // deal with REDIM
-                pos = textToExamine.ToLower().IndexOf("redim ");
+                // deal with crystal vars not used in javascript
+                pos = textToExamine.ToLower().IndexOf("var ");
                 if (pos > -1)
                 {
-                    while (pos > -1)
+                    tabText = "";
+                    if (textToExamine.ToLower().IndexOf('\t') > -1)
                     {
-                        wholeTextLenght = textToExamine.Length;
-                        subText = textToExamine.ToString().Substring(pos, wholeTextLenght - pos);
-                        subText = Regex.Replace(subText, @"\s+", " ");
-                        subTextConst = textToExamine.Substring(0, pos);
-                        string[] subTextDivided = subText.Split(new char[] { ' ' });
-                        subStringLength = subTextDivided.Length;
-                        textToExamine = subTextConst + subTextDivided[1] + " := new Array(" + 
-                                        subTextDivided[2].TrimEnd(';').TrimStart('[').TrimEnd(']') +  ")";
-                        if (subStringLength <= 3)
-                        {               
-                            if (subTextDivided[2].IndexOf(";") > -1)
+                        tabText = "\t";
+                    }
+                    subText = Regex.Replace(textToExamine, @"\s+", " ");
+                    string[] subTextDivided = subText.Split(new char[] { ' ' });
+                    subStringLength = subTextDivided.Length;
+                    textToExamine = "";
+                    for (j = 0; j < subStringLength; j++)
+                    {
+                        if (subTextDivided[j].ToLower() != "var" && subTextDivided[j].ToLower().IndexOf("var") > -1)
+                        {
+                            subTextDivided[j] = "";
+
+                            if (j == 0)
                             {
-                                textToExamine = textToExamine + ";";
+                                k = j + 1;
+                            }  else
+                            {
+                                k = j;
+                            }
+
+                            if (k - 1 >= 0 && subTextDivided[k - 1] != "var" && subTextDivided[k - 1] != "let")
+                            {
+                                subTextDivided[j] = "let";
                             }
                         }
+
+                        if (textToExamine == "")
+                        {
+                            textToExamine = subTextDivided[j];
+                        } 
                         else
                         {
-                            for (j = 3; j < subStringLength; j++)
+                            if (subTextDivided[j] != "")
                             {
                                 textToExamine = textToExamine + " " + subTextDivided[j];
-                            }
-                        }
-                        pos = textToExamine.ToLower().IndexOf("redim ");
+                            }           
+                        }                       
                     }
+                    textToExamine = tabText + textToExamine;
                 }
-
 
                 pos = aLine.IndexOf("//");
                 if (pos > -1 && Regex.Replace(aLine, @"\s+", "").StartsWith("//"))
@@ -426,7 +446,11 @@ namespace CrystalLanguageToJs
 				if ((words[i].ToLower() == "else") & (!words[i - 1].TrimEnd().EndsWith(";")) & (!words[i - 1].TrimEnd().EndsWith("}")))
 				{
 					words[i - 1] = words[i - 1] + ";";
-				}
+				} else if ((words[i].ToLower() == "case" || words[i].ToLower() == "default:" || words[i].ToLower() == "default") && 
+                           (!words[i - 1].TrimEnd().EndsWith(";")) && (!words[i - 2].EndsWith("switch")) && (!words[i - 3].EndsWith("switch")))
+                {
+                    words[i - 1] = words[i - 1] + "; break;";
+                }
 			}
 			return String.Join(" ", words);
 		}
@@ -879,10 +903,10 @@ namespace CrystalLanguageToJs
 			int ends;
 			string x;
 			string result;
-			if (GetParamsForDelphiCommand("length(", aLine.ToString(), out paramArray, out starts, out ends))
+			if (GetParamsForDelphiCommand("len(", aLine.ToString(), out paramArray, out starts, out ends))
 			{
 				x = paramArray[0];
-				result = aLine.Substring(0, Math.Max(0, starts)) + " " + x + ".Length ";
+				result = aLine.Substring(0, Math.Max(0, starts)) + " " + x + ".length ";
 				if (aLine.Length > ends)
 					result = result + aLine.Substring(ends + 1, aLine.Length - ends - 1);
 				aLine = result;
@@ -947,10 +971,14 @@ namespace CrystalLanguageToJs
 			int ends;
 			string x;
 			string result;
-			if (GetParamsForDelphiCommand("inttostr(", aLine.ToString(), out paramArray, out starts, out ends))
+			if (GetParamsForDelphiCommand("totext(", aLine.ToString(), out paramArray, out starts, out ends))
 			{
-				x = paramArray[0];
-				result = aLine.Substring(0, Math.Max(0, starts)) + " " + x + ".ToString()";
+				x = paramArray[1];
+                if (paramArray[2] != null)
+                {
+                    x = paramArray[2];
+                }
+                result = aLine.Substring(0, Math.Max(0, starts)) + " " + x;
 				if (aLine.Length > ends)
 					result = result + aLine.Substring(ends + 1, aLine.Length - ends - 1);
 				aLine = result;
@@ -962,8 +990,40 @@ namespace CrystalLanguageToJs
 			}
 		}
 
-		
-		private bool ConvertLowercase(ref string aLine)
+        private bool ConvertJoinLikeFunc(ref string aLine, string aCommand)
+        {
+            string[] paramArray;
+            int starts;
+            int ends;
+            string x;
+            string baseString;
+            string firstParam;
+            string secondParam;
+            string result;
+            x = aLine.ToString();
+            if (GetParamsForDelphiCommand(aCommand + "z(", x, out paramArray, out starts, out ends))
+            {
+                baseString = paramArray[1].Trim();
+                firstParam = paramArray[0];
+                secondParam = "";
+                if (paramArray[2] != null)
+                {
+                    baseString = paramArray[2].Trim();
+                    firstParam = paramArray[1];
+                    secondParam = ", " + paramArray[0];
+                }
+                result = x.Substring(0, Math.Max(0, starts)) + " " + baseString + "." + aCommand + "(" + firstParam + secondParam + ")";
+                if (x.Length > ends)
+                    result = result + x.Substring(ends + 1, x.Length - ends - 1);
+                aLine = result;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        private bool ConvertLowercase(ref string aLine)
 		{
 			string[] paramArray;
 			int starts;
@@ -1050,7 +1110,11 @@ namespace CrystalLanguageToJs
 			int pos2;
 			int j;
 			int k;
-			bool outcome;
+            int wholeTextLenght;
+            int subStringLength;
+            string subText;
+            string subTextConst;
+            bool outcome;
 			bool HasConstAndVarSection;
 			bool NeedsClosingBracket;
 			string returnType = "";
@@ -1381,16 +1445,31 @@ namespace CrystalLanguageToJs
 					AddLine(ref aLine, x, trailingComment);
 				}
 
-
-				// Convert IntToStr
-				while (ConvertIntToStr(ref x))
+                // Convert IntToStr
+                while (ConvertIntToStr(ref x))
 				{
 					AddLine(ref aLine, x, trailingComment);
 				}
 
+                // Split
+                while (ConvertJoinLikeFunc(ref x, "split"))
+                {
+                    AddLine(ref aLine, x, trailingComment);
+                }
+                // Join
+                while (ConvertJoinLikeFunc(ref x, "join"))
+                {
+                    AddLine(ref aLine, x, trailingComment);
+                }
 
-				// Convert LOWERCASE
-				while (ConvertLowercase(ref x))
+                // Replace
+                while (ConvertJoinLikeFunc(ref x, "replace"))
+                {
+                    AddLine(ref aLine, x, trailingComment);
+                }
+
+                // Convert LOWERCASE
+                while (ConvertLowercase(ref x))
 				{
 					AddLine(ref aLine, x, trailingComment);
 				}
@@ -1413,9 +1492,8 @@ namespace CrystalLanguageToJs
 					AddLine(ref aLine, x, trailingComment);
 				}
 
-
-				// Convert LOW
-				if (GetParamsForDelphiCommand("low(", aLine.ToString(), out paramArray, out starts, out ends))
+                // Convert LOW
+                if (GetParamsForDelphiCommand("low(", aLine.ToString(), out paramArray, out starts, out ends))
 				{
 					x = paramArray[0];
 					x = aLine.ToString().Substring(0, Math.Max(0, starts)) + " " + x + ".GetLowerBound(0) " +
@@ -1707,7 +1785,7 @@ namespace CrystalLanguageToJs
 						}
                         //  assemble for loop
                         x = x.Replace(" ", "");
-						x = "for (" + x.Replace(" ", "") + " = " + y + "; " + x + aDirection + z + "; " + x + Incrementor + ")" + "\n";
+						x = "for (" + x.Replace(" ", "") + " := " + y + "; " + x + aDirection + z + "; " + x + Incrementor + ")" + "\n";
 						//  add back any trailing text
 						pos = aLine.ToString().ToLower().IndexOf(" do ");
 						if (pos > -1)
@@ -1728,18 +1806,107 @@ namespace CrystalLanguageToJs
                         AddLine(ref aLine, x, trailingComment);
 					}
 				}
+            
+                // deal with Array
+                x = aLine.ToString();
+                pos = x.ToLower().IndexOf("array ");
+                if (pos > -1 && x.ToLower().IndexOf("//") == -1)
+                {
+                    subText = "";
+                    if (x.ToLower().IndexOf('\t') > -1)
+                    {
+                        subText = "\t";
+                    }
+                    x = Regex.Replace(x, @"\s+", " ");
+                    string[] subTextDivided = x.Split(new char[] { ' ' });
+                    pos2 = x.ToLower().IndexOf("makearray ");
+                    if (pos2 > -1)
+                    {
+                        wholeTextLenght = x.Length;
+                        subTextConst = "[" + x.Substring(pos2 + 11, wholeTextLenght - pos2 - 11).Replace(")" , "]" );
+                        if (subText == "")
+                            x = subTextDivided[0] + " " + subTextDivided[2] + " := " + subTextConst;
+                        else
+                        {
+                            x = subText + subTextDivided[1] + " " + subTextDivided[3].TrimEnd(';') + " := " + subTextConst;
+                        }
+                    }
+                    else
+                    {
+                        if (subText == "")
+                            x = subTextDivided[0] + " " + subTextDivided[2].TrimEnd(';') + " := [];";
+                        else
+                        {
+                            x = subText + subTextDivided[1] + " " + subTextDivided[3].TrimEnd(';') + " := [];";
+                        }
+                    }
+                    AddLine(ref aLine, x, trailingComment);
+                }
 
-				
-				//  Convert =
-				x = aLine.ToString();
+                // deal with REDIM
+                x = aLine.ToString();
+                pos = x.ToLower().IndexOf("redim ");
+                if (pos > -1)
+                {
+                    while (pos > -1)
+                    {
+                        wholeTextLenght = x.Length;
+                        subText = x.ToString().Substring(pos, wholeTextLenght - pos);
+                        subText = Regex.Replace(subText, @"\s+", " ");
+                        subTextConst = x.Substring(0, pos);
+                        string[] subTextDivided = subText.Split(new char[] { ' ' });
+                        subStringLength = subTextDivided.Length;
+                        x = subTextConst + subTextDivided[1] + " := new Array(" +
+                                        subTextDivided[2].TrimEnd(';').TrimStart('[').TrimEnd(']') + ")";
+                        if (subTextDivided[2].IndexOf(";") > -1)
+                        {
+                            x = x + ";";
+                        }
+                        for (j = 3; j < subStringLength; j++)
+                        {
+                            x = x + " " + subTextDivided[j];
+                        }
+                   
+                        pos = x.ToLower().IndexOf("redim ");
+                    }
+                    AddLine(ref aLine, x, trailingComment);
+                }
+
+                // deal with Select
+                x = aLine.ToString();
+                pos = x.ToLower().IndexOf("switch (");
+                if (pos > -1)
+                {                  
+                    wholeTextLenght = x.Length;
+                    subText = x.ToString().Substring(pos, wholeTextLenght - pos);
+                    subText = Regex.Replace(subText, @"\s+", " ");
+                    subTextConst = x.Substring(0, pos);
+                    string[] subTextDivided = subText.Split(new char[] { ' ' });
+                    subStringLength = subTextDivided.Length;
+                    if (subTextDivided[1] == "(")
+                    {
+                        subTextDivided[1] = "(" + subTextDivided[2];
+                        subTextDivided[2] = "";
+                    }
+                    x = subTextDivided[0] + subTextDivided[1] + ")\n" + subTextConst + "{\n" + subTextConst;
+
+                    for (j = 2; j < subStringLength; j++)
+                    {
+                        x = x + " " + subTextDivided[j];
+                    }
+                    x = subTextConst + x + "\n" + subTextConst +"}";
+
+                    AddLine(ref aLine, x, trailingComment);
+                }
+
+
+                //  Convert =
+                x = aLine.ToString();
 				pos = x.IndexOf(" = ");
 				if (pos > -1)
 				{
-					if (x.IndexOf(" for ") == -1)
-					{
-						x = x.Replace(" = ", " == ");
-						AddLine(ref aLine, x, trailingComment);
-					}
+					x = x.Replace(" = ", " == ");
+					AddLine(ref aLine, x, trailingComment);
 				}
 
 
