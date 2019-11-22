@@ -4,6 +4,8 @@ import numpy as np
 import imutils
 import cv2
 
+from pytesseract import pytesseract
+
 time.sleep(5)
 i = 0
 old_cur_pos = 0
@@ -57,19 +59,23 @@ while not pyautogui.locateOnScreen('bottom_end.png', region=(1700, 900, 60, 100)
                 myScreenshot = cv2.cvtColor(np.array(myScreenshot), cv2.COLOR_RGB2BGR)
                 myScreenshot = change_colors(myScreenshot)
                 cv2.imwrite('filename0_' + str(i) + '.png', myScreenshot)
+                pytesseract.run_tesseract(
+                    'filename0_' + str(i) + '.png', 'filename0_' + str(i), lang=None, extension='hocr', config='-c load_system_dawg=false load_freq_dawg=false')
 
-                myScreenshot1 = pyautogui.screenshot(region=(180, top2, 1554, height2))
+                myScreenshot1 = pyautogui.screenshot(region=(180, top2, 1555, height2))
                 myScreenshot1 = cv2.cvtColor(np.array(myScreenshot1), cv2.COLOR_RGB2BGR)
 
             scroll_horizontally("right")
             if top2 > 0:
                 myScreenshot2 = pyautogui.screenshot(
-                    region=(180, top2, 1555, height2))
+                    region=(181, top2, 1555, height2))
                 myScreenshot2 = cv2.cvtColor(np.array(myScreenshot2), cv2.COLOR_RGB2BGR)
                 myScreenshot = np.concatenate(
                     (myScreenshot1, myScreenshot2), axis=1)
                 myScreenshot = change_colors(myScreenshot)
                 cv2.imwrite('filename2_' + str(i) + '.png', myScreenshot)
+                pytesseract.run_tesseract(
+                    'filename2_' + str(i) + '.png', 'filename2_' + str(i), lang=None, extension='hocr', config='-c load_system_dawg=false load_freq_dawg=false')
                 i += 1
 
             myScreenshot = pyautogui.screenshot(region=(0, top, 150, 50))
@@ -77,22 +83,26 @@ while not pyautogui.locateOnScreen('bottom_end.png', region=(1700, 900, 60, 100)
                 np.array(myScreenshot), cv2.COLOR_RGB2BGR)
             myScreenshot = change_colors(myScreenshot)
             cv2.imwrite('filename0_' + str(i) + '.png', myScreenshot)
+            pytesseract.run_tesseract(
+                'filename0_' + str(i) + '.png', 'filename0_' + str(i), lang=None, extension='hocr', config='-c load_system_dawg=false load_freq_dawg=false')
 
             myScreenshot2 = pyautogui.screenshot(
-                region=(180, top, 1555, height))
+                region=(181, top, 1555, height))
             myScreenshot2 = cv2.cvtColor(
                 np.array(myScreenshot2), cv2.COLOR_RGB2BGR)
 
             scroll_horizontally("left")
 
             myScreenshot1 = pyautogui.screenshot(
-                region=(180, top, 1554, height))
+                region=(180, top, 1555, height))
             myScreenshot1 = cv2.cvtColor(
                 np.array(myScreenshot1), cv2.COLOR_RGB2BGR)
             myScreenshot = np.concatenate(
                 (myScreenshot1, myScreenshot2), axis=1)
             myScreenshot = change_colors(myScreenshot)
             cv2.imwrite('filename2_' + str(i) + '.png', myScreenshot)
+            pytesseract.run_tesseract(
+                'filename2_' + str(i) + '.png', 'filename2_' + str(i), lang=None, extension='hocr', config='-c load_system_dawg=false load_freq_dawg=false')
             
         pyautogui.press('down')
 
