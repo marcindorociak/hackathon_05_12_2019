@@ -11,11 +11,33 @@ i = 0
 old_cur_pos = 0
 
 def advance_contour_filtering(image):
+    image_copy = np.copy(image)
+    image_length = len(image)
     for i, values in enumerate(image):
         for j, (x, y, z) in enumerate(values):
-            if z > 20 and z < 137 and y > 70 and y < 171 and x > 70 and x < 215:
-                image[i][j] = [255, 255, 255]
-    return image
+            j2 = j
+            if z == 160 and y == 160 and x == 160 and j + 3 < len(values):
+                if image_copy[i][j][0] != image_copy[i][j + 3][0]:
+                    image_copy[i][j] = image_copy[i][j + 3]
+                elif i + 4 < image_length:
+                    image_copy[i][j] = image_copy[i + 4][j2]
+            if i < 20 and j > 94  and j < 101 and j + 5 < len(values):
+                j2 = j + 5
+                if j < 101 and j > 95:
+                    image_copy[i][j] = [255, 255, 255]
+                image_copy[i][j2] = image[i][j]
+            if i < 20 and j > 100 and j + 10 < len(values):
+                j2 = j + 10
+                if j < 107 and j > 100:
+                    image_copy[i][j + 5] = [255, 255, 255]
+                image_copy[i][j2] = image[i][j]
+            # else:
+            #     if z > 50 and z < 137 and y > 100 and y < 171 and x > 70 and x < 215:
+            #         image_copy[i][j2] = [255, 255, 255]
+            #     else: 
+            #         image_copy[i][j2] = [0, 0, 0]
+
+    return image_copy
 
 def save_and_ocr(myScreenshot, i, part):
     myScreenshot = change_colors(myScreenshot)
@@ -27,6 +49,7 @@ def save_and_ocr(myScreenshot, i, part):
 
 def change_colors(img):
     img[np.where((img == [150, 150, 150]).all(axis=2))] = [0, 0, 0]
+    img[np.where((img == [105, 132, 0]).all(axis=2))]   = [0, 0, 0]
     img[np.where((img == [109, 109, 109]).all(axis=2))] = [255, 255, 255]
 
     return img
