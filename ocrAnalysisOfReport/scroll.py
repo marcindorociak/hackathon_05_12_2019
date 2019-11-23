@@ -3,6 +3,10 @@ import time
 import numpy as np
 import imutils
 import cv2
+try:
+    from PIL import Image
+except ImportError:
+    import Image
 
 from pytesseract import pytesseract
 
@@ -10,42 +14,69 @@ time.sleep(5)
 i = 0
 old_cur_pos = 0
 
-def advance_contour_filtering(image):
+
+
+def advance_contour_filtering(image, option):
     image_copy = np.copy(image)
     image_length = len(image)
     for i, values in enumerate(image):
         for j, (x, y, z) in enumerate(values):
             j2 = j
-            if z == 160 and y == 160 and x == 160 and j + 3 < len(values):
-                if image_copy[i][j][0] != image_copy[i][j + 3][0]:
-                    image_copy[i][j] = image_copy[i][j + 3]
-                elif i + 4 < image_length:
-                    image_copy[i][j] = image_copy[i + 4][j2]
-            if i < 20 and j > 94  and j < 101 and j + 5 < len(values):
-                j2 = j + 5
-                if j < 101 and j > 95:
-                    image_copy[i][j] = [255, 255, 255]
-                image_copy[i][j2] = image[i][j]
-            if i < 20 and j > 100 and j + 10 < len(values):
-                j2 = j + 10
-                if j < 107 and j > 100:
-                    image_copy[i][j + 5] = [255, 255, 255]
-                image_copy[i][j2] = image[i][j]
-            # else:
-            #     if z > 50 and z < 137 and y > 100 and y < 171 and x > 70 and x < 215:
-            #         image_copy[i][j2] = [255, 255, 255]
-            #     else: 
-            #         image_copy[i][j2] = [0, 0, 0]
+            if option == '':
+                if z == 160 and y == 160 and x == 160 and j + 3 < len(values):
+                    if image_copy[i][j][0] != image_copy[i][j + 3][0]:
+                        image_copy[i][j] = image_copy[i][j + 3]
+                    elif i + 4 < image_length:
+                        image_copy[i][j] = image_copy[i + 4][j2]       
+
+                if i < 20 and j > 100 and j + 5 < len(values):
+                    j2 = j + 5
+                    if j < 107 and j > 101:
+                        image_copy[i][j] = [255, 255, 255]
+                    image_copy[i][j2] = image[i][j]
+            elif option == "empty" or option == "detail":
+                if z > 50 and z < 137 and y > 100 and y < 171 and x > 70 and x < 215:
+                    image_copy[i][j2] = [255, 255, 255]
+                else:
+                    image_copy[i][j2] = [0, 0, 0]
+    if option == 'detail':
+        image_copy = image_copy[0:30, 10:70]
+
+            # if i < 20 and j > 94  and j < 101 and j + 5 < len(values):
+            #     j2 = j + 5
+            #     if j < 101 and j > 95:
+            #         image_copy[i][j] = [255, 255, 255]
+            #     image_copy[i][j2] = image[i][j]
+           
 
     return image_copy
 
 def save_and_ocr(myScreenshot, i, part):
     myScreenshot = change_colors(myScreenshot)
     if part == "0":
-        myScreenshot = advance_contour_filtering(myScreenshot)
+        myScreenshot = advance_contour_filtering(myScreenshot, "")
     cv2.imwrite('filename' + part + '_' + str(i) + '.png', myScreenshot)
-    pytesseract.run_tesseract(
-        'filename' + part + '_' + str(i) + '.png', 'filename' + part + '_' + str(i), lang=None, extension='hocr', config='-c load_system_dawg=false load_freq_dawg=false')
+    if part == "0":
+        datails_string = pytesseract.image_to_string(Image.open('filename' + part + '_' + str(i) + '.png'))
+        if datails_string == "":
+            myScreenshot = advance_contour_filtering(myScreenshot, "empty")
+            cv2.imwrite('filename' + part + '_' +
+                        str(i) + '.png', myScreenshot)
+            datails_string = pytesseract.image_to_string(
+                Image.open('filename' + part + '_' + str(i) + '.png'))
+
+        if any(x in datails_string for x in ["Detail", "Detal", "detail", "detal"]):
+            myScreenshot=advance_contour_filtering(myScreenshot, "detail")
+            cv2.imwrite('filename' + part + '_' + \
+                        str(i) + '.png', myScreenshot)
+    if part == "2":
+        pytesseract.run_tesseract(
+            'filename' + part + '_' + str(i) + '.png', 'filename' + part + '_' + str(i), lang="fra+eng", extension='hocr', 
+            config='-c load_system_dawg=false load_freq_dawg=false')
+    else:
+        pytesseract.run_tesseract(
+            'filename' + part + '_' + str(i) + '.png', 'filename' + part + '_' + str(i), lang="fra+eng", extension='',
+            config='-c load_system_dawg=false load_freq_dawg=false')
 
 def change_colors(img):
     img[np.where((img == [150, 150, 150]).all(axis=2))] = [0, 0, 0]
