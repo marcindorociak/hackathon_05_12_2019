@@ -10,6 +10,23 @@ time.sleep(5)
 i = 0
 old_cur_pos = 0
 
+def advance_contour_filtering(image):
+    for i, values in enumerate(image):
+        for j, (x, y, z) in enumerate(values):
+            if y > 132 and y < 171:
+                print(y)
+            if x > 94 and x < 137 and y > 132 and y < 171 and z > 182 and z < 215:
+                image[i][j] = [255, 255, 255]
+    return image
+
+def save_and_ocr(myScreenshot, i, part):
+    myScreenshot = change_colors(myScreenshot)
+    if part == "0":
+        myScreenshot = advance_contour_filtering(myScreenshot)
+    cv2.imwrite('filename' + part + '_' + str(i) + '.png', myScreenshot)
+    pytesseract.run_tesseract(
+        'filename' + part + '_' + str(i) + '.png', 'filename' + part + '_' + str(i), lang=None, extension='hocr', config='-c load_system_dawg=false load_freq_dawg=false')
+
 def change_colors(img):
     img[np.where((img == [150, 150, 150]).all(axis=2))] = [0, 0, 0]
     img[np.where((img == [109, 109, 109]).all(axis=2))] = [255, 255, 255]
@@ -55,12 +72,9 @@ while not pyautogui.locateOnScreen('bottom_end.png', region=(1700, 900, 60, 100)
             i += 1
 
             if top2 > 0:
-                myScreenshot = pyautogui.screenshot(region=(0, top2, 150, 50))
+                myScreenshot = pyautogui.screenshot(region=(5, top2, 145, 50))
                 myScreenshot = cv2.cvtColor(np.array(myScreenshot), cv2.COLOR_RGB2BGR)
-                myScreenshot = change_colors(myScreenshot)
-                cv2.imwrite('filename0_' + str(i) + '.png', myScreenshot)
-                pytesseract.run_tesseract(
-                    'filename0_' + str(i) + '.png', 'filename0_' + str(i), lang=None, extension='hocr', config='-c load_system_dawg=false load_freq_dawg=false')
+                save_and_ocr(myScreenshot, i , "0")
 
                 myScreenshot1 = pyautogui.screenshot(region=(180, top2, 1555, height2))
                 myScreenshot1 = cv2.cvtColor(np.array(myScreenshot1), cv2.COLOR_RGB2BGR)
@@ -72,19 +86,13 @@ while not pyautogui.locateOnScreen('bottom_end.png', region=(1700, 900, 60, 100)
                 myScreenshot2 = cv2.cvtColor(np.array(myScreenshot2), cv2.COLOR_RGB2BGR)
                 myScreenshot = np.concatenate(
                     (myScreenshot1, myScreenshot2), axis=1)
-                myScreenshot = change_colors(myScreenshot)
-                cv2.imwrite('filename2_' + str(i) + '.png', myScreenshot)
-                pytesseract.run_tesseract(
-                    'filename2_' + str(i) + '.png', 'filename2_' + str(i), lang=None, extension='hocr', config='-c load_system_dawg=false load_freq_dawg=false')
+                save_and_ocr(myScreenshot, i, "2")
                 i += 1
 
-            myScreenshot = pyautogui.screenshot(region=(0, top, 150, 50))
+            myScreenshot = pyautogui.screenshot(region=(5, top, 145, 50))
             myScreenshot = cv2.cvtColor(
                 np.array(myScreenshot), cv2.COLOR_RGB2BGR)
-            myScreenshot = change_colors(myScreenshot)
-            cv2.imwrite('filename0_' + str(i) + '.png', myScreenshot)
-            pytesseract.run_tesseract(
-                'filename0_' + str(i) + '.png', 'filename0_' + str(i), lang=None, extension='hocr', config='-c load_system_dawg=false load_freq_dawg=false')
+            save_and_ocr(myScreenshot, i, "0")
 
             myScreenshot2 = pyautogui.screenshot(
                 region=(181, top, 1555, height))
@@ -99,10 +107,7 @@ while not pyautogui.locateOnScreen('bottom_end.png', region=(1700, 900, 60, 100)
                 np.array(myScreenshot1), cv2.COLOR_RGB2BGR)
             myScreenshot = np.concatenate(
                 (myScreenshot1, myScreenshot2), axis=1)
-            myScreenshot = change_colors(myScreenshot)
-            cv2.imwrite('filename2_' + str(i) + '.png', myScreenshot)
-            pytesseract.run_tesseract(
-                'filename2_' + str(i) + '.png', 'filename2_' + str(i), lang=None, extension='hocr', config='-c load_system_dawg=false load_freq_dawg=false')
+            save_and_ocr(myScreenshot, i, "2")
             
         pyautogui.press('down')
 
