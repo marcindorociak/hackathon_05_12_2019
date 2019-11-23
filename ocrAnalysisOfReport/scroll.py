@@ -13,9 +13,7 @@ old_cur_pos = 0
 def advance_contour_filtering(image):
     for i, values in enumerate(image):
         for j, (x, y, z) in enumerate(values):
-            if y > 132 and y < 171:
-                print(y)
-            if x > 94 and x < 137 and y > 132 and y < 171 and z > 182 and z < 215:
+            if z > 20 and z < 137 and y > 70 and y < 171 and x > 70 and x < 215:
                 image[i][j] = [255, 255, 255]
     return image
 
