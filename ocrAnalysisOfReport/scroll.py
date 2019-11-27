@@ -19,7 +19,7 @@ def advance_contour_filtering(image, option):
     global after_details
     image_copy = np.copy(image)
     image_length = len(image)
-    if option == "":
+    if option == "" or option == 'footer1' or option == 'footer2' or option == 'footer3':
         for i, values in enumerate(image):
             for j, (x, y, z) in enumerate(values):
                 j2 = j
@@ -28,20 +28,34 @@ def advance_contour_filtering(image, option):
                         if image_copy[i][j][0] != image_copy[i][j + 3][0]:
                             image_copy[i][j] = image_copy[i][j + 3]
                         elif i + 4 < image_length:
-                            image_copy[i][j] = image_copy[i + 4][j2]       
-                    if after_details == False:
-                        if i < 20 and j > 100 and j + 5 < len(values):
-                            j2 = j + 5
-                            if j < 107 and j > 101:
-                                image_copy[i][j] = [255, 255, 255]
-                            image_copy[i][j2] = image[i][j]
-                # elif option == "empty" or option == "detail":
-                #     if z > 50 and z < 137 and y > 100 and y < 171 and x > 70 and x < 215:
-                #         image_copy[i][j2] = [255, 255, 255]
-                #     else:
-                #         image_copy[i][j2] = [0, 0, 0]
+                            image_copy[i][j] = image_copy[i + 4][j2]      
+                 
+                if after_details == False:
+                    if i < 20 and j > 100 and j + 5 < len(values):
+                        j2 = j + 5
+                        if j < 107 and j > 101:
+                            image_copy[i][j] = [255, 255, 255]
+                        image_copy[i][j2] = image[i][j]
+                if option == 'footer1':
+                    if i < 20 and j > 95 and j + 10 < len(values):
+                        j2 = j + 10
+                        if j < 106 and j > 96:
+                            image_copy[i][j] = image_copy[20][120]
+                        image_copy[i][j2] = image[i][j]
+
+                if option == 'footer2':
+                    if i < 20 and j == 106:
+                        image_copy[i][j] = image_copy[20][120]
+
+                if option == "footer3":
+                    if z > 50 and z < 137 and y > 100 and y < 171 and x > 70 and x < 215:
+                         image_copy[i][j2] = [255, 255, 255]
+                    else:
+                         image_copy[i][j2] = [0, 0, 0]
     if option == 'detail' or option == 'empty':
         image_copy = image_copy[0:30, 10:70]
+    if option == 'footer4':
+        image_copy = image_copy[10:22, 106:110]
 
             # if i < 20 and j > 94  and j < 101 and j + 5 < len(values):
             #     j2 = j + 5
@@ -69,7 +83,31 @@ def save_and_ocr(myScreenshot, i, part):
             myScreenshot = advance_contour_filtering(myScreenshot, "empty")
             cv2.imwrite('filename' + part + '_' +
                         str(i) + '.png', myScreenshot)
-
+        if after_details and check_if_last_is_letter(datails_string) == False:
+            myScreenshot = advance_contour_filtering(myScreenshot, "footer1")
+            cv2.imwrite('filename' + part + '_' + str(i) + '.png', myScreenshot)
+            datails_string = pytesseract.image_to_string(Image.open('filename' + part + '_' + str(
+                i) + '.png'), config='-c load_system_dawg=false load_freq_dawg=false', lang="fra+eng").lower()
+            if check_if_last_is_letter(datails_string) == False:
+                myScreenshot_copy = np.copy(myScreenshot)
+                myScreenshot = advance_contour_filtering(myScreenshot, "footer2")
+                cv2.imwrite('filename' + part + '_' +
+                            str(i) + '.png', myScreenshot)
+                datails_string = pytesseract.image_to_string(Image.open('filename' + part + '_' + str(i) + '.png'), 
+                                config='-c load_system_dawg=false load_freq_dawg=false', lang="fra+eng").lower()
+                if check_if_last_is_letter(datails_string) == False:
+                    myScreenshot = advance_contour_filtering(myScreenshot, "footer3")
+                    cv2.imwrite('filename' + part + '_' +
+                                str(i) + '.png', myScreenshot)
+                    datails_string = pytesseract.image_to_string(Image.open('filename' + part + '_' + str(i) + '.png'),
+                                                                 config='-c load_system_dawg=false load_freq_dawg=false', lang="fra+eng").lower()
+                    if check_if_last_is_letter(datails_string) == False:
+                        myScreenshot_copy = advance_contour_filtering(myScreenshot_copy, "footer4")
+                        cv2.imwrite('help' + '_' + str(i) +'.png', myScreenshot_copy)
+                        datails_string = pytesseract.image_to_string(Image.open('help' + '_' + str(i) + '.png'),
+                                                                     config='-c load_system_dawg=false load_freq_dawg=false', lang="fra+eng").lower()
+                        print(datails_string)
+                
     if part == "2":
         pytesseract.run_tesseract(
             'filename' + part + '_' + str(i) + '.png', 'filename' + part + '_' + str(i), lang="fra+eng", extension='hocr', 
@@ -78,6 +116,14 @@ def save_and_ocr(myScreenshot, i, part):
         pytesseract.run_tesseract(
             'filename' + part + '_' + str(i) + '.png', 'filename' + part + '_' + str(i), lang="fra+eng", extension='',
             config='-c load_system_dawg=false load_freq_dawg=false')
+
+def check_if_last_is_letter(text):
+    text = text.split('\n', 1)[0]
+    if text.endswith(':'):
+        text = text[:-1]
+    if text[-1:].isalpha() and text[-1:] != "à":
+        return True
+    return False
 
 def change_colors(img):
     img[np.where((img == [150, 150, 150]).all(axis=2))] = [0, 0, 0]
