@@ -19,7 +19,7 @@ def advance_contour_filtering(image, option):
     global after_details
     image_copy = np.copy(image)
     image_length = len(image)
-    if option == "" or option == 'footer1' or option == 'footer2' or option == 'footer3':
+    if option == "" or option == 'footer1' or option == 'footer2' or option == 'footer3' or option == 'page':
         for i, values in enumerate(image):
             for j, (x, y, z) in enumerate(values):
                 j2 = j
@@ -36,6 +36,14 @@ def advance_contour_filtering(image, option):
                         if j < 107 and j > 101:
                             image_copy[i][j] = [255, 255, 255]
                         image_copy[i][j2] = image[i][j]
+
+                if option == 'page':
+                    if i < 20 and j > 77 and j + 10 < len(values):
+                        j2 = j + 10
+                        if j < 86 and j > 78:
+                            image_copy[i][j] = [255, 255, 255]
+                        image_copy[i][j2] = image[i][j]
+
                 if option == 'footer1':
                     if i < 20 and j > 95 and j + 10 < len(values):
                         j2 = j + 10
@@ -54,8 +62,6 @@ def advance_contour_filtering(image, option):
                          image_copy[i][j2] = [0, 0, 0]
     if option == 'detail' or option == 'empty':
         image_copy = image_copy[0:30, 10:70]
-    if option == 'footer4':
-        image_copy = image_copy[10:22, 106:110]
 
             # if i < 20 and j > 94  and j < 101 and j + 5 < len(values):
             #     j2 = j + 5
@@ -79,6 +85,11 @@ def save_and_ocr(myScreenshot, i, part):
             myScreenshot = advance_contour_filtering(myScreenshot, "detail")
             cv2.imwrite('filename' + part + '_' +
                         str(i) + '.png', myScreenshot)
+        after_details = True
+        if after_details and any(x in datails_string for x in ["page"]):
+            myScreenshot = advance_contour_filtering(myScreenshot, "page")
+            cv2.imwrite('filename' + part + '_' + str(i) + '.png', myScreenshot)
+
         if datails_string == "":
             myScreenshot = advance_contour_filtering(myScreenshot, "empty")
             cv2.imwrite('filename' + part + '_' +
@@ -89,7 +100,6 @@ def save_and_ocr(myScreenshot, i, part):
             datails_string = pytesseract.image_to_string(Image.open('filename' + part + '_' + str(
                 i) + '.png'), config='-c load_system_dawg=false load_freq_dawg=false', lang="fra+eng").lower()
             if check_if_last_is_letter(datails_string) == False:
-                myScreenshot_copy = np.copy(myScreenshot)
                 myScreenshot = advance_contour_filtering(myScreenshot, "footer2")
                 cv2.imwrite('filename' + part + '_' +
                             str(i) + '.png', myScreenshot)
@@ -97,16 +107,7 @@ def save_and_ocr(myScreenshot, i, part):
                                 config='-c load_system_dawg=false load_freq_dawg=false', lang="fra+eng").lower()
                 if check_if_last_is_letter(datails_string) == False:
                     myScreenshot = advance_contour_filtering(myScreenshot, "footer3")
-                    cv2.imwrite('filename' + part + '_' +
-                                str(i) + '.png', myScreenshot)
-                    datails_string = pytesseract.image_to_string(Image.open('filename' + part + '_' + str(i) + '.png'),
-                                                                 config='-c load_system_dawg=false load_freq_dawg=false', lang="fra+eng").lower()
-                    if check_if_last_is_letter(datails_string) == False:
-                        myScreenshot_copy = advance_contour_filtering(myScreenshot_copy, "footer4")
-                        cv2.imwrite('help' + '_' + str(i) +'.png', myScreenshot_copy)
-                        datails_string = pytesseract.image_to_string(Image.open('help' + '_' + str(i) + '.png'),
-                                                                     config='-c load_system_dawg=false load_freq_dawg=false', lang="fra+eng").lower()
-                        print(datails_string)
+                    cv2.imwrite('filename' + part + '_' + str(i) + '.png', myScreenshot)
                 
     if part == "2":
         pytesseract.run_tesseract(
@@ -121,7 +122,7 @@ def check_if_last_is_letter(text):
     text = text.split('\n', 1)[0]
     if text.endswith(':'):
         text = text[:-1]
-    if text[-1:].isalpha() and text[-1:] != "à":
+    if text[-1:].isalpha():
         return True
     return False
 
