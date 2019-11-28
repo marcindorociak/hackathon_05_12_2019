@@ -11,6 +11,7 @@ except ImportError:
     import Image
 
 from pytesseract import pytesseract
+from collections import OrderedDict
 
 time.sleep(5)
 i = 0
@@ -150,19 +151,38 @@ def save_and_ocr(myScreenshot, i, part):
     
 
 def clean_file(file_name, i):
-    with open(file_name, "r") as file:
-    text = file.readlines()
-    j = 0
-    while j < len(text):
-        if keyword in text[j]:
-            text[j] = text[j].replace("|", "")
-            text[j] = re.sub(' +', ' ', text[j])
-            text[j] = re.sub(r"^\s+|\s+$", "", text[j])
+    txt_file = open(file_name, 'r', encoding="utf8")
+    txt_datas = txt_file.readlines()
+    for j, txt_data in enumerate(txt_datas):
+        if j == 0:
+            txt_data = txt_data.lower()
+        to_replace = OrderedDict(
+            [("|", ""), (",", "_"), ("detals", "details"), ("detais", "details"), ("‘", ""), 
+            ("É", "E"), ("detail s", "details"), ("detail ", "details ")])
+        txt_data = replace_all(txt_data, to_replace)
+        txt_data = re.sub(' +', ' ', txt_data)
+      #  txt_data = re.sub(r"^\s+|\s+$", "", txt_data)
+        txt_datas[j] = txt_data
+    
+    test_data = re.sub(r"^\s+|\s+$", "", txt_datas[0])
+    if test_data[-1:].isalpha():
+        to_replace = OrderedDict(
+            [(".", ""), ("ÿ", "g"), ("9", "g"), (":", ""), ("à", "q"), ("¢", "c")])
+        test_data = replace_all(test_data, to_replace)
+        txt_datas[0] = test_data[: -1] + " " + test_data[-1:] + "\n"
+        txt_datas[0] = txt_datas[0].replace("foote r", "footer")
+        txt_datas[0] = txt_datas[0].replace("heade r", "header")
 
-    with open(file_name, "w") as file:
-        file.writelines(text)
+    txt_datas[0] = re.sub(' +', ' ', txt_datas[0])
+    txt_file = open(file_name, 'w', encoding="utf8")
+    txt_file.writelines(txt_datas)
+    txt_file.close()
 
 
+def replace_all(text, dic):
+    for i, j in dic.items():
+        text = text.replace(i, j)
+    return text
 def check_if_last_is_letter(text):
     text = text.split('\n', 1)[0]
     if text.endswith(':'):
