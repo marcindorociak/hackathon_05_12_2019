@@ -81,8 +81,9 @@ def advance_contour_filtering(image, option):
 
     return image_copy
 
-def save_and_ocr(myScreenshot, i, part):
+def save_and_ocr(myScreenshot, part):
     global after_details
+    global i
     myScreenshot = change_colors(myScreenshot)
     if part == "0":
         myScreenshot = advance_contour_filtering(myScreenshot, "")
@@ -118,7 +119,7 @@ def save_and_ocr(myScreenshot, i, part):
                 top3 = pyautogui.locateOnScreen('break_line.png', region=(230, 197, 21, 100))[1]
                 myScreenshot = pyautogui.screenshot(region=(5, top3, 145, 50))
                 myScreenshot = cv2.cvtColor(np.array(myScreenshot), cv2.COLOR_RGB2BGR)
-                save_and_ocr(myScreenshot, i, part)
+                save_and_ocr(myScreenshot, part)
                 while not pyautogui.locateOnScreen('break_line.png', region=(230, 900, 21, 100)):
                     pyautogui.press('down')
                 return
@@ -142,15 +143,22 @@ def save_and_ocr(myScreenshot, i, part):
         pytesseract.run_tesseract(
             'filename' + part + '_' + str(i) + '.png', 'filename' + part + '_' + str(i), lang="fra+eng", extension='hocr', 
             config='-c load_system_dawg=false load_freq_dawg=false')
+        files_were_deleted = False
     else:
         pytesseract.run_tesseract(
             'filename' + part + '_' + str(i) + '.png', 'filename' + part + '_' + str(i), lang="fra+eng", extension='',
             config='-c load_system_dawg=false load_freq_dawg=false')
-        clean_file('filename' + part + '_' + str(i) + '.txt', i)
-    os.remove('filename' + part + '_' + str(i) + '.png')
+        files_were_deleted = clean_file('filename' + part + '_' + str(i) + '.txt')
+    if not files_were_deleted:
+        png_index = i
+    else:
+        png_index = i + 1
+    
+    os.remove('filename' + part + '_' + str(png_index) + '.png')
     
 
-def clean_file(file_name, i):
+def clean_file(file_name):
+    global i
     txt_file = open(file_name, 'r', encoding="utf8")
     txt_datas = txt_file.readlines()
     for j, txt_data in enumerate(txt_datas):
@@ -158,26 +166,56 @@ def clean_file(file_name, i):
             txt_data = txt_data.lower()
         to_replace = OrderedDict(
             [("|", ""), (",", "_"), ("detals", "details"), ("detais", "details"), ("‘", ""), 
-            ("É", "E"), ("detail s", "details"), ("detail ", "details ")])
+            ("É", "E"), ("detail ", "details ")])
         txt_data = replace_all(txt_data, to_replace)
         txt_data = re.sub(' +', ' ', txt_data)
       #  txt_data = re.sub(r"^\s+|\s+$", "", txt_data)
         txt_datas[j] = txt_data
     
     test_data = re.sub(r"^\s+|\s+$", "", txt_datas[0])
-    if test_data[-1:].isalpha():
-        to_replace = OrderedDict(
-            [(".", ""), ("ÿ", "g"), ("9", "g"), (":", ""), ("à", "q"), ("¢", "c")])
-        test_data = replace_all(test_data, to_replace)
-        txt_datas[0] = test_data[: -1] + " " + test_data[-1:] + "\n"
-        txt_datas[0] = txt_datas[0].replace("foote r", "footer")
-        txt_datas[0] = txt_datas[0].replace("heade r", "header")
+    to_replace = OrderedDict(
+        [(".", ""), ("ÿ", "g"), ("9", "g"), (":", ""), ("à", "q"), ("¢", "c"), ("#", "")])
+    test_data = replace_all(test_data, to_replace)
+    txt_datas[0] = test_data[: -1] + " " + test_data[-1:]
+
+    to_replace = OrderedDict(
+        [("foote r", "footer"), ("heade r", "header"), ("detail s", "details")])
+    txt_datas[0] = replace_all(txt_datas[0], to_replace)
 
     txt_datas[0] = re.sub(' +', ' ', txt_datas[0])
-    txt_file = open(file_name, 'w', encoding="utf8")
-    txt_file.writelines(txt_datas)
-    txt_file.close()
 
+    output_table = fill_when_end_is_not_recognized_by_ocr(txt_datas[0], i)
+    txt_datas[0] = output_table[0] + "\n"
+    if output_table[1]:
+        txt_file.close()
+        os.remove('filename0_' + str(i) + '.txt')
+        i -= 1
+        return True
+    else:
+        txt_file = open(file_name, 'w', encoding="utf8")
+        txt_file.writelines(txt_datas)
+        txt_file.close()
+        return False
+
+def fill_when_end_is_not_recognized_by_ocr(file_text, i):
+    rename_to_previous = False
+    if i > 1:
+        txt_file = open('filename0_' + str(i-1) + '.txt', 'r', encoding="utf8")
+        txt_data = txt_file.readline()
+        txt_data = re.sub(r"^\s+|\s+$", "", txt_data)
+        if txt_data == file_text:
+            txt_file.close()
+            rename_to_previous = True
+    
+
+
+        # file_text_split = file_text.split(" ")
+        # if len(file_text_split) == 1 and i > 2:
+        #      txt_file = open('filename0_' + str(i-1) + '.txt', 'r', encoding="utf8")
+        #      txt_datas = txt_file.readline()
+            
+
+    return [file_text, rename_to_previous]
 
 def replace_all(text, dic):
     for i, j in dic.items():
@@ -245,7 +283,7 @@ def scan_action():
             myScreenshot = pyautogui.screenshot(region=(5, top2, 145, 50))
             myScreenshot = cv2.cvtColor(
                 np.array(myScreenshot), cv2.COLOR_RGB2BGR)
-            save_and_ocr(myScreenshot, i, "0")
+            save_and_ocr(myScreenshot, "0")
 
             myScreenshot1 = pyautogui.screenshot(
                 region=(180, top2, 1555, height2))
@@ -260,13 +298,13 @@ def scan_action():
                 np.array(myScreenshot2), cv2.COLOR_RGB2BGR)
             myScreenshot = np.concatenate(
                 (myScreenshot1, myScreenshot2), axis=1)
-            save_and_ocr(myScreenshot, i, "2")
+            save_and_ocr(myScreenshot, "2")
             i += 1
 
         myScreenshot = pyautogui.screenshot(region=(5, top, 145, 50))
         myScreenshot = cv2.cvtColor(
             np.array(myScreenshot), cv2.COLOR_RGB2BGR)
-        save_and_ocr(myScreenshot, i, "0")
+        save_and_ocr(myScreenshot, "0")
 
         myScreenshot2 = pyautogui.screenshot(
             region=(181, top, 1555, height))
@@ -281,7 +319,7 @@ def scan_action():
             np.array(myScreenshot1), cv2.COLOR_RGB2BGR)
         myScreenshot = np.concatenate(
             (myScreenshot1, myScreenshot2), axis=1)
-        save_and_ocr(myScreenshot, i, "2")
+        save_and_ocr(myScreenshot, "2")
 
 while not pyautogui.locateOnScreen('bottom_end.png', region=(1700, 900, 60, 100)):
     scan_action()
