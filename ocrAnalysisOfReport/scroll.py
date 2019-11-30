@@ -5,6 +5,7 @@ import imutils
 import cv2
 import re
 import os
+import hocr2html
 try:
     from PIL import Image
 except ImportError:
@@ -144,6 +145,7 @@ def save_and_ocr(myScreenshot, part):
             'filename' + part + '_' + str(i) + '.png', 'filename' + part + '_' + str(i), lang="fra+eng", extension='hocr', 
             config='-c load_system_dawg=false load_freq_dawg=false')
         files_were_deleted = False
+        hocr2html.main('filename' + part + '_' + str(i))
     else:
         pytesseract.run_tesseract(
             'filename' + part + '_' + str(i) + '.png', 'filename' + part + '_' + str(i), lang="fra+eng", extension='',

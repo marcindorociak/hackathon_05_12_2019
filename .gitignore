@@ -1,3 +1,4 @@
 *.html
 !spec/*.html
 /CrystalLanguageToJs/bin/
+__pycache__/
