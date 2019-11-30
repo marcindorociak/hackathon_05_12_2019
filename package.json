@@ -1,0 +1,22 @@
+{
+  "name": "hackathon-11-2019",
+  "version": "1.0.0",
+  "description": "Conversion Crystal Report to jsreport definition",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "lint": "tslint -c tslint.json -p tsconfig.json",
+    "start": "npm run build && electron ./dist/main.js"
+  },
+  "repository": "",
+  "keywords": [
+    "hackathon"
+  ],
+  "author": "Marcin Dorociak",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^6.0.8",
+    "tslint": "^5.19.0",
+    "typescript": "^3.6.0"
+  }
+}
