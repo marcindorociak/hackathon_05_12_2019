@@ -198,24 +198,27 @@ def clean_file(file_name):
         return False
 
 def fill_when_end_is_not_recognized_by_ocr(file_text, i):
-    rename_to_previous = False
     if i > 1:
         txt_file = open('filename0_' + str(i-1) + '.txt', 'r', encoding="utf8")
         txt_data = txt_file.readline()
         txt_data = re.sub(r"^\s+|\s+$", "", txt_data)
+
         if txt_data == file_text:
             txt_file.close()
-            rename_to_previous = True
-    
+            return [file_text, True]
 
+        txt_data = txt_data.split(" ")
+        file_text = file_text.split(" ")
 
-        # file_text_split = file_text.split(" ")
-        # if len(file_text_split) == 1 and i > 2:
-        #      txt_file = open('filename0_' + str(i-1) + '.txt', 'r', encoding="utf8")
-        #      txt_datas = txt_file.readline()
-            
-
-    return [file_text, rename_to_previous]
+        if txt_data[0] == file_text[0]:
+            length = len(file_text)
+            if len(txt_data) - len(file_text) == 1 and "".join(file_text) == "".join(txt_data[:-1]):
+                file_text.append(chr(ord(txt_data[length]) + 1))
+            elif len(txt_data) == len(file_text) and "".join(file_text[:-1]) == "".join(txt_data[:-1]):
+                file_text[length - 1] = chr(ord(txt_data[length - 1]) + 1)
+        file_text = " ".join(file_text)
+        txt_file.close()
+    return [file_text, False]
 
 def replace_all(text, dic):
     for i, j in dic.items():
