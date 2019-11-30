@@ -1,4 +1,9 @@
 *.html
+*.txt
 !spec/*.html
+!spec/*.txt
+!index.html
 /CrystalLanguageToJs/bin/
 __pycache__/
+node_modules
+dist

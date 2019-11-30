@@ -88,31 +88,31 @@ def save_and_ocr(myScreenshot, part):
     myScreenshot = change_colors(myScreenshot)
     if part == "0":
         myScreenshot = advance_contour_filtering(myScreenshot, "")
-    cv2.imwrite('filename' + part + '_' + str(i) + '.png', myScreenshot)
+    cv2.imwrite('output/filename' + part + '_' + str(i) + '.png', myScreenshot)
     if part == "0":
-        datails_string = pytesseract.image_to_string(Image.open('filename' + part + '_' + str(i) + '.png'),
+        datails_string = pytesseract.image_to_string(Image.open('output/filename' + part + '_' + str(i) + '.png'),
                                                      config='-c load_system_dawg=false load_freq_dawg=false', lang="fra+eng").lower()
         if any(x in datails_string for x in ["detail", "detal", "detai"]):
             after_details = True
             myScreenshot = advance_contour_filtering(myScreenshot, "detail")
-            cv2.imwrite('filename' + part + '_' +
+            cv2.imwrite('output/filename' + part + '_' +
                         str(i) + '.png', myScreenshot)
         if any(x in datails_string for x in ["page"]):
             if after_details == False:
                 myScreenshot = advance_contour_filtering(myScreenshot, "group")
             else:
                 myScreenshot = advance_contour_filtering(myScreenshot, "page")
-            cv2.imwrite('filename' + part + '_' + str(i) + '.png', myScreenshot)
+            cv2.imwrite('output/filename' + part + '_' + str(i) + '.png', myScreenshot)
 
         if after_details == False and any(x in datails_string for x in ["group"]):
             if datails_string.split('\n', 1)[0].endswith(':'):
                 myScreenshot = advance_contour_filtering(myScreenshot, "group")
-                cv2.imwrite('filename' + part + '_' + str(i) + '.png', myScreenshot)
+                cv2.imwrite('output/filename' + part + '_' + str(i) + '.png', myScreenshot)
         if datails_string == "":
             myScreenshot = advance_contour_filtering(myScreenshot, "empty")
-            cv2.imwrite('filename' + part + '_' +
+            cv2.imwrite('output/filename' + part + '_' +
                         str(i) + '.png', myScreenshot)
-            datails_string = pytesseract.image_to_string(Image.open('filename' + part + '_' + str(i) + '.png'),
+            datails_string = pytesseract.image_to_string(Image.open('output/filename' + part + '_' + str(i) + '.png'),
                                                          config='-c load_system_dawg=false load_freq_dawg=false', lang="fra+eng").lower()
             if datails_string == "" and i > 1:
                 while not pyautogui.locateOnScreen('break_line.png', region=(230, 197, 21, 100)):
@@ -127,36 +127,36 @@ def save_and_ocr(myScreenshot, part):
             
         if after_details and check_if_last_is_letter(datails_string) == False:
             myScreenshot = advance_contour_filtering(myScreenshot, "footer1")
-            cv2.imwrite('filename' + part + '_' + str(i) + '.png', myScreenshot)
-            datails_string = pytesseract.image_to_string(Image.open('filename' + part + '_' + str(
+            cv2.imwrite('output/filename' + part + '_' + str(i) + '.png', myScreenshot)
+            datails_string = pytesseract.image_to_string(Image.open('output/filename' + part + '_' + str(
                 i) + '.png'), config='-c load_system_dawg=false load_freq_dawg=false', lang="fra+eng").lower()
             if check_if_last_is_letter(datails_string) == False:
                 myScreenshot = advance_contour_filtering(myScreenshot, "footer2")
-                cv2.imwrite('filename' + part + '_' +
+                cv2.imwrite('output/filename' + part + '_' +
                             str(i) + '.png', myScreenshot)
-                datails_string = pytesseract.image_to_string(Image.open('filename' + part + '_' + str(i) + '.png'), 
+                datails_string = pytesseract.image_to_string(Image.open('output/filename' + part + '_' + str(i) + '.png'), 
                                 config='-c load_system_dawg=false load_freq_dawg=false', lang="fra+eng").lower()
                 if check_if_last_is_letter(datails_string) == False:
                     myScreenshot = advance_contour_filtering(myScreenshot, "footer3")
-                    cv2.imwrite('filename' + part + '_' + str(i) + '.png', myScreenshot)
+                    cv2.imwrite('output/filename' + part + '_' + str(i) + '.png', myScreenshot)
                 
     if part == "2":
         pytesseract.run_tesseract(
-            'filename' + part + '_' + str(i) + '.png', 'filename' + part + '_' + str(i), lang="fra+eng", extension='hocr', 
+            'output/filename' + part + '_' + str(i) + '.png', 'output/filename' + part + '_' + str(i), lang="fra+eng", extension='hocr', 
             config='-c load_system_dawg=false load_freq_dawg=false')
         files_were_deleted = False
-        hocr2html.main('filename' + part + '_' + str(i))
+        hocr2html.main('output/filename' + part + '_' + str(i))
     else:
         pytesseract.run_tesseract(
-            'filename' + part + '_' + str(i) + '.png', 'filename' + part + '_' + str(i), lang="fra+eng", extension='',
+            'output/filename' + part + '_' + str(i) + '.png', 'output/filename' + part + '_' + str(i), lang="fra+eng", extension='',
             config='-c load_system_dawg=false load_freq_dawg=false')
-        files_were_deleted = clean_file('filename' + part + '_' + str(i) + '.txt')
+        files_were_deleted = clean_file('output/filename' + part + '_' + str(i) + '.txt')
     if not files_were_deleted:
         png_index = i
     else:
         png_index = i + 1
     
-    os.remove('filename' + part + '_' + str(png_index) + '.png')
+    os.remove('output/filename' + part + '_' + str(png_index) + '.png')
     
 
 def clean_file(file_name):
@@ -190,7 +190,7 @@ def clean_file(file_name):
     txt_datas[0] = output_table[0] + "\n"
     if output_table[1]:
         txt_file.close()
-        os.remove('filename0_' + str(i) + '.txt')
+        os.remove('output/filename0_' + str(i) + '.txt')
         i -= 1
         return True
     else:
@@ -201,7 +201,8 @@ def clean_file(file_name):
 
 def fill_when_end_is_not_recognized_by_ocr(file_text, i):
     if i > 1:
-        txt_file = open('filename0_' + str(i-1) + '.txt', 'r', encoding="utf8")
+        txt_file = open('output/filename0_' + str(i-1) +
+                        '.txt', 'r', encoding="utf8")
         txt_data = txt_file.readline()
         txt_data = re.sub(r"^\s+|\s+$", "", txt_data)
 
