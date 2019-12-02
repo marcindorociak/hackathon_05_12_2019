@@ -331,3 +331,7 @@ while not pyautogui.locateOnScreen('bottom_end.png', region=(1700, 900, 60, 100)
     scan_action()
     pyautogui.press('down')
 scan_action()
+
+txt_file = open('output/lastNum.txt', 'w', encoding="utf8")
+txt_file.write(str(i))
+txt_file.close()

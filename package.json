@@ -15,8 +15,8 @@
   "author": "Marcin Dorociak",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^6.0.8",
-    "tslint": "^5.19.0",
-    "typescript": "^3.6.0"
+    "electron": "^7.1.2",
+    "tslint": "^5.20.1",
+    "typescript": "^3.7.2"
   }
 }
