@@ -1,7 +1,0 @@
-C:\svn\hackathon112019\CrystalLanguageToJs\bin\Debug\CrystalLanguageToJs.exe
-C:\svn\hackathon112019\CrystalLanguageToJs\bin\Debug\CrystalLanguageToJs.pdb
-C:\svn\hackathon112019\CrystalLanguageToJs\obj\Debug\CrystalLanguageToJs.csprojAssemblyReference.cache
-C:\svn\hackathon112019\CrystalLanguageToJs\obj\Debug\CrystalLanguageToJs.frmD2C.resources
-C:\svn\hackathon112019\CrystalLanguageToJs\obj\Debug\CrystalLanguageToJs.csproj.GenerateResource.cache
-C:\svn\hackathon112019\CrystalLanguageToJs\obj\Debug\CrystalLanguageToJs.exe
-C:\svn\hackathon112019\CrystalLanguageToJs\obj\Debug\CrystalLanguageToJs.pdb

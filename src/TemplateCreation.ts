@@ -1,33 +1,4 @@
-// This file is required by the index.html file and will
-// be executed in the renderer process for that window.
-// All of the Node.js APIs are available in this process.
-import * as fs from "fs";
-
-document.getElementById("convert").addEventListener("submit", (evt) => {
-    // prevent default refresh functionality of forms
-    evt.preventDefault();
-    const anFolder = "ocrAnalysisOfReport/output/";
-    const reportDefinitionPath = "crystalFiles/reportDefinition.txt";
-
-    let navigation: string;
-    let reportDefinition: string;
-
-    const lastNum = +fs.readFileSync(anFolder + "lastNum.txt", "utf8");
-    reportDefinition = fs.readFileSync(reportDefinitionPath, "utf8");
-    const templateCreation = new TemplateCreation("");
-
-    for (let i = 1; i < lastNum + 1; i++) {
-        navigation = fs.readFileSync(anFolder + "filename0_" + i + ".txt", "utf8").split("\n")[0];
-        if (navigation.replace(/\s\s+/g, "") !== "") {
-            templateCreation.labelContent = navigation;
-            templateCreation.checkIfVisible(reportDefinition);
-            console.log(templateCreation.isVisible);
-            console.log(templateCreation.visibleCode);
-        }
-    }
-});
-
-class TemplateCreation {
+export class TemplateCreation {
     public labelContent: string;
     public isVisible: boolean;
     public visibleCode: string;
@@ -108,9 +79,5 @@ class TemplateCreation {
                 this.visibleCode = visibleCode;
             }
         }
-    }
-
-    public convertCodeToJs() {
-        
     }
 }
