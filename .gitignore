@@ -3,7 +3,9 @@
 !spec/*.html
 !spec/*.txt
 !index.html
-/CrystalLanguageToJs/bin/
+/CrystalLanguageToJsTest/bin/
+/CrystalLanguageToJsTest/obj/
+/CrystalLanguageToJsDll/obj/
 __pycache__/
 node_modules
 dist
