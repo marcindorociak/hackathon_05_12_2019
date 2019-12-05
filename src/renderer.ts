@@ -25,6 +25,7 @@ document.getElementById("convert").addEventListener("submit", (evt) => {
                 templateCreation.labelContent = navigation;
                 templateCreation.checkIfVisible(reportDefinition);
                 await templateCreation.convertCodeToJs();
+            console.log(templateCreation.visibleCode);
                 await fs.writeFile('test/test' + i + '.txt', templateCreation.visibleCode, 'utf8', function (err) { });
                 //console.log(templateCreation.isVisible);
                 //console.log(templateCreation.visibleCode);
