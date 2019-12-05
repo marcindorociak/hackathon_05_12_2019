@@ -32,8 +32,8 @@ def advance_contour_filtering(image, option):
                         if image_copy[i][j][0] != image_copy[i][j + 3][0]:
                             image_copy[i][j] = image_copy[i][j + 3]
                         elif i + 4 < image_length:
-                            image_copy[i][j] = image_copy[i + 4][j2]      
-                 
+                            image_copy[i][j] = image_copy[i + 4][j2]
+
                 if (after_details == False and option == 'group') or option == 'empty':
                     if i < 20 and j > 100 and j + 5 < len(values):
                         j2 = j + 5
@@ -78,7 +78,7 @@ def advance_contour_filtering(image, option):
             #     if j < 101 and j > 95:
             #         image_copy[i][j] = [255, 255, 255]
             #     image_copy[i][j2] = image[i][j]
-           
+
 
     return image_copy
 
@@ -124,7 +124,7 @@ def save_and_ocr(myScreenshot, part):
                 while not pyautogui.locateOnScreen('break_line.png', region=(230, 900, 21, 100)):
                     pyautogui.press('down')
                 return
-            
+
         if after_details and check_if_last_is_letter(datails_string) == False:
             myScreenshot = advance_contour_filtering(myScreenshot, "footer1")
             cv2.imwrite('output/filename' + part + '_' + str(i) + '.png', myScreenshot)
@@ -134,18 +134,24 @@ def save_and_ocr(myScreenshot, part):
                 myScreenshot = advance_contour_filtering(myScreenshot, "footer2")
                 cv2.imwrite('output/filename' + part + '_' +
                             str(i) + '.png', myScreenshot)
-                datails_string = pytesseract.image_to_string(Image.open('output/filename' + part + '_' + str(i) + '.png'), 
+                datails_string = pytesseract.image_to_string(Image.open('output/filename' + part + '_' + str(i) + '.png'),
                                 config='-c load_system_dawg=false load_freq_dawg=false', lang="fra+eng").lower()
                 if check_if_last_is_letter(datails_string) == False:
                     myScreenshot = advance_contour_filtering(myScreenshot, "footer3")
                     cv2.imwrite('output/filename' + part + '_' + str(i) + '.png', myScreenshot)
-                
+
     if part == "2":
         pytesseract.run_tesseract(
-            'output/filename' + part + '_' + str(i) + '.png', 'output/filename' + part + '_' + str(i), lang="fra+eng", extension='hocr', 
+            'output/filename' + part + '_' + str(i) + '.png', 'output/filename' + part + '_' + str(i), lang="fra+eng", extension='hocr',
             config='-c load_system_dawg=false load_freq_dawg=false')
         files_were_deleted = False
         hocr2html.main('output/filename' + part + '_' + str(i))
+        file_name = 'output/filename' + part + '_' + str(i) + ".html"
+        txt_file = open(file_name, 'r', encoding="utf8")
+        txt_datas = txt_file.readlines()
+        with open(file_name, 'w', encoding="utf8") as f:
+            for j, txt_data in enumerate(txt_datas):
+                f.write("%s\n" % txt_data.replace('_O', '_0'))
     else:
         pytesseract.run_tesseract(
             'output/filename' + part + '_' + str(i) + '.png', 'output/filename' + part + '_' + str(i), lang="fra+eng", extension='',
@@ -155,9 +161,9 @@ def save_and_ocr(myScreenshot, part):
         png_index = i
     else:
         png_index = i + 1
-    
+
     os.remove('output/filename' + part + '_' + str(png_index) + '.png')
-    
+
 
 def clean_file(file_name):
     global i
@@ -167,13 +173,13 @@ def clean_file(file_name):
         if j == 0:
             txt_data = txt_data.lower()
         to_replace = OrderedDict(
-            [("|", ""), (",", "_"), ("detals", "details"), ("detais", "details"), ("‘", ""), 
+            [("|", ""), (",", "_"), ("detals", "details"), ("detais", "details"), ("‘", ""),
             ("É", "E"), ("detail ", "details ")])
         txt_data = replace_all(txt_data, to_replace)
         txt_data = re.sub(' +', ' ', txt_data)
       #  txt_data = re.sub(r"^\s+|\s+$", "", txt_data)
         txt_datas[j] = txt_data
-    
+
     test_data = re.sub(r"^\s+|\s+$", "", txt_datas[0])
     to_replace = OrderedDict(
         [(".", ""), ("ÿ", "g"), ("9", "g"), (":", ""), ("à", "q"), ("¢", "c"), ("#", "")])
@@ -185,6 +191,34 @@ def clean_file(file_name):
     txt_datas[0] = replace_all(txt_datas[0], to_replace)
 
     txt_datas[0] = re.sub(' +', ' ', txt_datas[0])
+
+    output_table = fill_when_end_is_not_recognized_by_ocr(txt_datas[0], i)
+    txt_datas[0] = output_table[0] + "\n"
+    if output_table[1]:
+        txt_file.close()
+        os.remove('output/filename0_' + str(i) + '.txt')
+        i -= 1
+        return True
+    else:
+        txt_file = open(file_name, 'w', encoding="utf8")
+        txt_file.writelines(txt_datas)
+        txt_file.close()
+        return False
+
+
+
+
+
+        to_replace = OrderedDict(
+            [("|", ""), (",", "_"), ("detals", "details"), ("detais", "details"), ("‘", ""),
+            ("É", "E"), ("detail ", "details ")])
+        txt_data = replace_all(txt_data, to_replace)
+        txt_data = re.sub(' +', ' ', txt_data)
+      #  txt_data = re.sub(r"^\s+|\s+$", "", txt_data)
+        txt_datas[j] = txt_data
+
+
+
 
     output_table = fill_when_end_is_not_recognized_by_ocr(txt_datas[0], i)
     txt_datas[0] = output_table[0] + "\n"
@@ -262,7 +296,7 @@ def scan_action():
     global after_details
     global i
     global old_cur_pos
-    
+
     l = 0
     height2 = 0
     top2 = 0
