@@ -6,6 +6,7 @@ import * as fs from "fs";
 document.getElementById("convert").addEventListener("submit", (evt) => {
     // prevent default refresh functionality of forms
     evt.preventDefault();
+    (async () => {
     const anFolder = "ocrAnalysisOfReport/output/";
     const reportDefinitionPath = "crystalFiles/reportDefinition.txt";
 
@@ -15,16 +16,21 @@ document.getElementById("convert").addEventListener("submit", (evt) => {
     const lastNum = +fs.readFileSync(anFolder + "lastNum.txt", "utf8");
     reportDefinition = fs.readFileSync(reportDefinitionPath, "utf8");
     const templateCreation = new TemplateCreation("");
+        fs.writeFileSync('test/reportDefinition.txt', reportDefinition, 'utf8');
+
 
     for (let i = 1; i < lastNum + 1; i++) {
         navigation = fs.readFileSync(anFolder + "filename0_" + i + ".txt", "utf8").split("\n")[0];
         if (navigation.replace(/\s\s+/g, "") !== "") {
-            templateCreation.labelContent = navigation;
-            templateCreation.checkIfVisible(reportDefinition);
-            console.log(templateCreation.isVisible);
-            console.log(templateCreation.visibleCode);
+                templateCreation.labelContent = navigation;
+                templateCreation.checkIfVisible(reportDefinition);
+                await templateCreation.convertCodeToJs();
+                await fs.writeFile('test/test' + i + '.txt', templateCreation.visibleCode, 'utf8', function (err) { });
+                //console.log(templateCreation.isVisible);
+                //console.log(templateCreation.visibleCode);
         }
-    }
+        }
+    })();
 });
 
 class TemplateCreation {
@@ -45,6 +51,8 @@ class TemplateCreation {
         let tabIndex: number;
         let groupNum: string;
         let navigArray: string[];
+
+        this.visibleCode = "";
 
         navigArray = this.labelContent.split(" ");
         groupNum = "";
@@ -110,7 +118,25 @@ class TemplateCreation {
         }
     }
 
-    public convertCodeToJs() {
-        
+    public async convertCodeToJs() {
+        let codeArray: string[];
+
+        if (this.visibleCode !== "")
+        {
+            codeArray = this.visibleCode.split("\n");
+
+
+            const rawResponse = await fetch("http://localhost:27449/api/convert", {
+                method: "POST",
+                headers: {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ code: codeArray })
+            });
+            codeArray = await rawResponse.json();
+            this.visibleCode = await codeArray.join("\n");
+
+        }
     }
 }

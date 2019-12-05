@@ -15,11 +15,11 @@
   "author": "Marcin Dorociak",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^7.1.2",
+    "electron": "^6.1.5",
     "tslint": "^5.20.1",
-    "typescript": "^3.7.2"
+    "typescript": "^3.7.3"
   },
   "dependencies": {
-    "edge": "^7.10.1"
+    "electron-fetch": "^1.4.0"
   }
 }

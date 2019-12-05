@@ -42,18 +42,18 @@ namespace CrystalLanguageToJsDll
 
         public string ChangeNonBracketedSyntax(string delphiCode)
         {
-            string[] delphi = new string[] {"{",  "}", " True", " False", " Continue", " Break",
+            string[] delphi = new string[] {"}or{", "{",  "}", " True", " False", " Continue", " Break",
                                             "Else", "end;", " end\n", "Then", "TStringList", "TStrings", "begin",
                                             "<>", "Exit",   ".Strings[", "#13#10",
-                                            " not ", " or ", " and ", " then",
+                                            " not ", " not(", " or ", " and ", " then",
                                             " while ", " do ", "TDateTime",
                                             ";", "overload", "\\", "''", " ( ", " (\n", "\t(",
                                             " ) ", " );", "\t);", " )\n", "?", "@", "if ",  "If "
                                            };
-            string[] CSharp = new String[] {"", "", " true", " false", " continue", " break",
+            string[] CSharp = new String[] {" or ", "", "", " true", " false", " continue", " break",
                                             "else", "}",     "}",     "then", "string[]",    "string[]", "{\n",
                                             "!=", "return", "[", "'\\n'",
-                                            " !",    " || ", " && "   , ")",
+                                            " !", " !(", " || ", " && "   , ")",
                                             " while (", ") " , "DateTime",
                                             ";\n", " ", "\\\\","\'", " { ", " {\n", "\t{",
                                             " } ", " }", "\t}", " }\n", "", "", "if (", "if ("
